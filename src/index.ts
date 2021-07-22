@@ -1,9 +1,6 @@
 import { Plugin } from 'vite';
 import execa from 'execa';
 import npmRunPath from 'npm-run-path';
-import chalk from 'chalk';
-
-const logPrefix = chalk.cyan('[@jihchi/vite-plugin-rescript]');
 
 async function launchReScript(watch: boolean) {
   const cmd = watch
@@ -11,7 +8,10 @@ async function launchReScript(watch: boolean) {
     : 'rescript build -with-deps';
 
   const result = execa.command(cmd, {
-    env: npmRunPath.env(),
+    env: {
+      ...npmRunPath.env(),
+      FORCE_COLOR: 'true',
+    },
     extendEnv: true,
     shell: true,
     windowsHide: false,
@@ -22,7 +22,7 @@ async function launchReScript(watch: boolean) {
 
   function dataListener(chunk: any) {
     const output = chunk.toString().trimEnd();
-    console.log(logPrefix, output);
+    console.log(output);
     if (watch && output.includes('>>>> Finish compiling')) {
       compileOnce(true);
     }
@@ -45,7 +45,7 @@ async function launchReScript(watch: boolean) {
 
 export default function createReScriptPlugin(): Plugin {
   return {
-    name: '@jihchi/vite-plugin-rescript',
+    name: 'vite-plugin-rescript',
     async configResolved(resolvedConfig) {
       await launchReScript(resolvedConfig.command === 'serve');
     },
